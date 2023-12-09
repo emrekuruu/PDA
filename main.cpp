@@ -29,7 +29,7 @@ void print(const std::map<tuple<string,char,char,char>, vector<string>>& myMap) 
 
 struct PDA{
 
-    stack<char> stack;
+    stack<char> pda_stack;
 
     int number_of_states;
 
@@ -158,11 +158,11 @@ struct PDA{
         print(path);
 
         // base case
-        if(input.size() == position && this->stack.empty() && this->final_states.count(this->current) > 0){
+        if(input.size() == position && this->pda_stack.empty() && this->final_states.count(this->current) > 0){
             return {true,false,path};
         }
 
-        if(stack.empty()){
+        if(pda_stack.empty()){
             // Check all possible transitions
             for (auto &trans : this->transitions) {
                 auto &[state, inputChar, pop, push] = trans.first;
@@ -194,7 +194,7 @@ struct PDA{
 
             auto &[state, inputChar, pop, push] = trans.first;
 
-            if (state == current && (inputChar == nextInput || inputChar == 'E') && ( pop == this->stack.top() || pop =='E') ) {
+            if (state == current && (inputChar == nextInput || inputChar == 'E') && ( pop == this->pda_stack.top() || pop == 'E') ) {
 
                 for (const auto &next: trans.second) {
                     // Apply transition
@@ -211,11 +211,11 @@ struct PDA{
 
                     if (pop != 'E') {
                         cout << "Popped:" << pop << endl;
-                        this->stack.pop();
+                        this->pda_stack.pop();
                     }
 
                     if (push != 'E') {
-                        this->stack.push(push);
+                        this->pda_stack.push(push);
                         cout << "Pushed:" << push << endl;
                     }
 
@@ -237,10 +237,10 @@ struct PDA{
                     this->current = oldState;
 
                     if (push != 'E')
-                        this->stack.pop();
+                        this->pda_stack.pop();
 
                     if (pop != 'E')
-                        this->stack.push(pop);
+                        this->pda_stack.push(pop);
 
                 }
             }
@@ -252,8 +252,8 @@ struct PDA{
     tuple<bool, vector<string>> operator()(const string& input) {
         this->current = this->start;
         auto path = vector<string>{this->current};
-        this->stack.push(this->initial_stack_symbol);
-        this->current = this->transitions[make_tuple(this->current,'E','E',this->stack.top())][0];
+        this->pda_stack.push(this->initial_stack_symbol);
+        this->current = this->transitions[make_tuple(this->current,'E','E',this->pda_stack.top())][0];
         path.push_back(this->current);
         auto [accepted,stuck,path_] = runHelper(input, 0, path);
         return {accepted,path_};
