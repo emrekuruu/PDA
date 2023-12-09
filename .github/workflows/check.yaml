@@ -20,7 +20,13 @@ jobs:
 
     - name: Check Output in output.txt
       run: |
-        EXPECTED="q1 q2 q2 q2 q3 q3 q4"
+        EXPECTED="""
+        q1 q2 q2 q2 q3 q3 q4 
+        Accepted
+        q1 q2 q2 q3 q4 
+        Rejected
+        """
+        
         OUTPUT=$(cat output.txt)
         if [ "$OUTPUT" == "$EXPECTED" ]; then
           echo "Accepted"
