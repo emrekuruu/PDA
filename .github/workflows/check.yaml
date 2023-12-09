@@ -1,0 +1,30 @@
+name: Run C++20 Tests and Check Output
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install g++ (if necessary)
+      run: sudo apt-get install g++-12
+
+    - name: Compile main.cpp with C++20
+      run: g++-12 -std=c++20 -o main main.cpp
+
+    - name: Run main.cpp
+      run: ./main
+
+    - name: Check Output in output.txt
+      run: |
+        EXPECTED="q1 q2 q2 q2 q3 q3 q4"
+        OUTPUT=$(cat output.txt)
+        if [ "$OUTPUT" == "$EXPECTED" ]; then
+          echo "Accepted"
+        else
+          echo "Rejected"
+          exit 1
+        fi
