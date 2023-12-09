@@ -1,0 +1,1 @@
+This projects objective is to simulate a PDA's operations, taking as input a set of states, a stack and input alphabet, transition functions, start states, and final states as input, then simulating the PDA for given strings. The output includes the path traversed and the results, which are written to an output file.
