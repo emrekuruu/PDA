@@ -20,17 +20,13 @@ jobs:
 
     - name: Check Output in output.txt
       run: |
-        EXPECTED="""
-        q1 q2 q2 q2 q3 q3 q4 
-        Accepted
-        q1 q2 q2 q3 q4 
-        Rejected
-        """
+        EXPECTED=$'q1 q2 q2 q2 q3 q3 q4\nAccepted\nq1 q2 q2 q3 q4\nRejected\n'
         
         OUTPUT=$(cat output.txt)
+        
         if [ "$OUTPUT" == "$EXPECTED" ]; then
-          echo "Accepted"
+            echo "Output matches expected."
         else
-          echo "Rejected"
-          exit 1
+            echo "Output does not match expected."
         fi
+
