@@ -152,15 +152,100 @@ struct PDA{
         cout<<endl;
     }
 
-    tuple<bool,bool, vector<string>> runHelper(const string& input, int position, vector<string>& path) {
-
-        cout<<endl;
-        print(path);
-
-        // base case
-        if(input.size() == position && this->pda_stack.empty() && this->final_states.count(this->current) > 0){
-            return {true,false,path};
+    tuple<bool, bool, vector<string>> runHelper(const string& input, int position, vector<string>& path) {
+        // Debugging: Print current path
+        cout << "Current Path: ";
+        for (const auto& state : path) {
+            cout << state << " ";
         }
+        cout << endl;
+
+        // Base case: Check if the input is fully processed, the stack is empty, and the current state is final
+        if (input.size() == position && this->pda_stack.empty() && this->final_states.count(this->current) > 0) {
+            cout << "Accepted: Reached final state with empty stack and full input processed." << endl;
+            return {true, false, path};
+        }
+
+        char nextInput = position < input.size() ? input[position] : 'E'; // 'E' for empty input
+        bool anyTransitionPossible = false;
+
+        // Explore all possible transitions from the current state
+        for (const auto& trans : this->transitions) {
+            auto &[state, inputChar, pop, push] = trans.first;
+
+            // Check if the transition is applicable
+            if (state == this->current && (inputChar == nextInput || inputChar == 'E') && ( pop == this->pda_stack.top() || pop == 'E')) {
+                anyTransitionPossible = true;
+
+                for (const auto &next: trans.second) {
+
+                    string oldState = this->current;
+                    char oldPop = pop;
+                    char oldPush = push;
+
+                    // Apply transition
+                    this->current = next;
+                    cout << "Transition: " << state << " -> " << next << " with input '" << inputChar << "'" << endl;
+
+                    if (pop != 'E' && !this->pda_stack.empty()) {
+                        this->pda_stack.pop();
+                        cout << "Popped: " << pop << endl;
+                    }
+                    else { cout << "Popped Nothing"<<endl; }
+
+                    if (push != 'E') {
+                        this->pda_stack.push(push);
+                        cout << "Pushed: " << push << endl;
+                    }
+                    else { cout << "Pushed Nothing"<<endl; }
+
+                    // Update path
+                    path.push_back(this->current);
+
+                    // Decide whether to consume an input character
+                    int nextPosition = position + (inputChar != 'E' ? 1 : 0);
+
+                    // Recurse
+                    auto [accepted, stuck, finalPath] = runHelper(input, nextPosition, path);
+
+                    if (accepted) {
+                        return {true, false, finalPath};
+                    }
+
+                    // Undo the transition if not accepted
+                    path.pop_back();
+
+                    this->current = oldState;
+
+                    cout << "Backtracking: Reverting to state " << oldState << endl;
+
+                    if (oldPush != 'E') {
+                        if (!this->pda_stack.empty()) {
+                            this->pda_stack.pop();
+                            cout << "Backtrack Pop: " << oldPush << endl;
+                        } else {
+                            cout << "Warning: Attempted to backtrack pop from an empty stack" << endl;
+                        }
+                    }
+
+                    if (oldPop != 'E') {
+                        this->pda_stack.push(oldPop);
+                        cout << "Backtrack Push: " << oldPop << endl;
+                    }
+
+                }
+            }
+        }
+
+        // If no transitions are possible, the PDA is stuck
+        if (!anyTransitionPossible) {
+            cout << "Stuck: No possible transitions from state " << this->current << endl;
+        }
+
+        return {false, !anyTransitionPossible, path};
+    }
+
+    tuple<bool,bool, vector<string>> rejected_path(const string& input, int position, vector<string>& path) {
 
         if(pda_stack.empty()){
             // Check all possible transitions
@@ -174,10 +259,7 @@ struct PDA{
                         // Update path
                         path.push_back(this->current);
                         // Recurse
-                        auto [accepted, stuck, finalPath] = runHelper(input, position, path);
-                        if (accepted) {
-                            return {true, false, finalPath};
-                        }
+                        auto [accepted, stuck, finalPath] = rejected_path(input, position, path);
                         // Undo the transition if not accepted
                         path.pop_back();
                         this->current = oldState;
@@ -207,27 +289,10 @@ struct PDA{
                         nextPosition++;
                     }
 
-                    cout << "Used:" << inputChar << endl;
-
-                    if (pop != 'E') {
-                        cout << "Popped:" << pop << endl;
-                        this->pda_stack.pop();
-                    }
-
-                    if (push != 'E') {
-                        this->pda_stack.push(push);
-                        cout << "Pushed:" << push << endl;
-                    }
-
-                    cout << "Went to" << this->current << endl;
-                    // Update path
                     path.push_back(this->current);
 
                     // Recurse
-                    auto [accepted, stuck, finalPath] = runHelper(input, nextPosition, path);
-                    if (accepted) {
-                        return {true, stuck, finalPath};
-                    }
+                    auto [accepted, stuck, finalPath] = rejected_path(input, nextPosition, path);
 
                     if (stuck)
                         return {false, true, path};
@@ -245,20 +310,32 @@ struct PDA{
                 }
             }
         }
-
         return {false,true,path};
     }
 
-    tuple<bool, vector<string>> operator()(const string& input) {
+    vector<string> reset(){
+        this->pda_stack = stack<char>();
         this->current = this->start;
         auto path = vector<string>{this->current};
         this->pda_stack.push(this->initial_stack_symbol);
         this->current = this->transitions[make_tuple(this->current,'E','E',this->pda_stack.top())][0];
         path.push_back(this->current);
-        auto [accepted,stuck,path_] = runHelper(input, 0, path);
-        return {accepted,path_};
+        return path;
     }
 
+    tuple<bool, vector<string>> operator()(const string& input) {
+        cout<<endl;
+        cout<<"Simulating for: "<<input<<endl;
+        auto path = reset();
+        auto [accepted,stuck,path_] = runHelper(input, 0, path);
+        if(accepted)
+            return {accepted, path_};
+        else{
+            path = reset();
+            auto [rejected,stuck_,visited] = rejected_path(input, 0, path);
+            return {rejected,visited};
+        }
+    }
 };
 
 
@@ -313,3 +390,4 @@ int main(){
     return 0;
 
 }
+
