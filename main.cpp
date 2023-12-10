@@ -289,6 +289,14 @@ struct PDA{
                         nextPosition++;
                     }
 
+                    if (pop != 'E') {
+                        this->pda_stack.pop();
+                    }
+
+                    if (push != 'E') {
+                        this->pda_stack.push(push);
+                    }
+
                     path.push_back(this->current);
 
                     // Recurse
