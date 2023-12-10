@@ -1,0 +1,25 @@
+2
+3
+1
+4
+q1 q2 q3 q4
+q1
+q4
+X Y Z
+X
+0 1
+q1 E E X q2
+q2 0 E Y q2
+q2 1 E Z q2
+q2 0 E E q3
+q2 1 E E q3
+q2 E E E q3
+q3 1 Z E q3
+q3 0 Y E q3
+q3 E X E q4
+END
+0011
+000111
+00011000
+01110
+010
