@@ -16,7 +16,7 @@ jobs:
       run: g++-12 -std=c++20 -o main main.cpp
 
     - name: Run main.cpp
-      run: ./main
+      run: ./main "input.txt"
 
     - name: Check Output in output.txt
       run: |
