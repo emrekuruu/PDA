@@ -386,11 +386,9 @@ struct Simulator {
 
 
 int main(){
+    
     //The path to your input file
-    //The path to your input file
-    string input;
-
-    cin >> input;
+    string input = "input.txt";
 
     auto pda = PDA(input);
 
